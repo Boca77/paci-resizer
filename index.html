@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paci Resizer — print-ready A4</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Paci&nbsp;Resizer</h1>
+  <p class="tag">Upload · set the real-world size · print it on A4 at 1:1</p>
+</header>
+
+<main class="layout">
+
+  <!-- ─────────── controls ─────────── -->
+  <aside class="panel">
+
+    <section class="block">
+      <h2>1 · Image</h2>
+      <div id="drop" class="drop" tabindex="0">
+        <input type="file" id="file" accept="image/*" hidden>
+        <div class="drop-inner">
+          <strong>Drop an image</strong>
+          <span>or click to browse · or paste</span>
+        </div>
+      </div>
+      <p id="srcInfo" class="hint">No image loaded.</p>
+    </section>
+
+    <section class="block">
+      <h2>2 · Printed size</h2>
+
+      <label class="row">
+        <span>Units</span>
+        <select id="unit">
+          <option value="mm" selected>mm</option>
+          <option value="cm">cm</option>
+          <option value="in">inches</option>
+          <option value="px">pixels</option>
+        </select>
+      </label>
+
+      <div class="row dims">
+        <label><span>Width</span><input type="number" id="w" min="1" step="0.1" value="100"></label>
+        <button id="lock" class="lock is-on" title="Lock aspect ratio" aria-pressed="true">⛓</button>
+        <label><span>Height</span><input type="number" id="h" min="1" step="0.1" value="100"></label>
+      </div>
+
+      <label class="row">
+        <span>Presets</span>
+        <select id="preset">
+          <option value="">Custom…</option>
+          <option value="35,45">Passport 35 × 45 mm</option>
+          <option value="85.6,53.98">Card 85.6 × 54 mm</option>
+          <option value="100,150">Photo 10 × 15 cm</option>
+          <option value="101.6,152.4">Photo 4 × 6 in</option>
+          <option value="105,148">A6 105 × 148 mm</option>
+          <option value="148,210">A5 148 × 210 mm</option>
+          <option value="210,297">A4 full page</option>
+        </select>
+      </label>
+
+      <label class="row">
+        <span>Print quality</span>
+        <select id="dpi">
+          <option value="72">72 DPI — screen</option>
+          <option value="150">150 DPI — draft</option>
+          <option value="300" selected>300 DPI — print</option>
+          <option value="600">600 DPI — fine (heavy)</option>
+        </select>
+      </label>
+
+      <label class="row">
+        <span>Fit</span>
+        <select id="fit">
+          <option value="contain" selected>Contain — whole image, padded</option>
+          <option value="cover">Cover — fill, crops edges</option>
+          <option value="stretch">Stretch — distorts</option>
+        </select>
+      </label>
+
+      <label class="row" id="bgRow">
+        <span>Padding</span>
+        <span class="inline">
+          <input type="color" id="bg" value="#ffffff">
+          <label class="chk"><input type="checkbox" id="bgNone"> transparent</label>
+        </span>
+      </label>
+
+      <p id="outInfo" class="hint">—</p>
+    </section>
+
+    <section class="block">
+      <h2>3 · A4 sheet</h2>
+
+      <label class="row">
+        <span>Orientation</span>
+        <select id="orient">
+          <option value="portrait" selected>Portrait 210 × 297</option>
+          <option value="landscape">Landscape 297 × 210</option>
+        </select>
+      </label>
+
+      <div class="row dims">
+        <label><span>Margin mm</span><input type="number" id="margin" min="0" step="1" value="10"></label>
+        <label><span>Gap mm</span><input type="number" id="gap" min="0" step="1" value="4"></label>
+      </div>
+
+      <div class="row dims">
+        <label><span>Copies</span><input type="number" id="copies" min="1" step="1" value="1"></label>
+        <button id="fill" class="ghost" type="button">Fill sheet</button>
+      </div>
+
+      <label class="chk"><input type="checkbox" id="marks" checked> cut marks</label>
+
+      <p id="sheetInfo" class="hint">—</p>
+    </section>
+
+    <section class="block actions">
+      <button id="print" class="primary" disabled>Print A4</button>
+      <button id="dlSheet" disabled>Download A4 sheet (PNG)</button>
+      <div class="row dims">
+        <button id="dlImg" disabled>Download image only</button>
+        <select id="format">
+          <option value="png" selected>PNG</option>
+          <option value="jpeg">JPEG</option>
+        </select>
+      </div>
+      <p class="hint">Downloads carry the DPI tag, so Photoshop / Word place them at the right physical size.</p>
+    </section>
+
+  </aside>
+
+  <!-- ─────────── preview ─────────── -->
+  <section class="stage">
+    <div class="stage-inner">
+      <canvas id="preview" class="paper"></canvas>
+      <p id="warn" class="warn" hidden></p>
+    </div>
+  </section>
+
+</main>
+
+<!-- print target: replaced with the rendered sheet, hidden on screen -->
+<div id="printArea"><img id="printImg" alt=""></div>
+<style id="pageStyle">@page { size: A4 portrait; margin: 0; }</style>
+
+<script src="app.js"></script>
+</body>
+</html>

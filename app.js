@@ -19,7 +19,7 @@ const doc = {
   orient: 'portrait',
   margin: 10,
   gap: 4,
-  dpi: 300,
+  dpi: 600,
   marks: true,
   guides: true,
 };
@@ -655,10 +655,13 @@ function updateInfo() {
 
   const msgs = [];
   const S = sheetSize();
+  // ~200 DPI is where a print starts to look soft. Capped, so raising the export
+  // resolution to 600 does not flag every ordinary photo.
+  const softBelow = Math.min(doc.dpi * 0.66, 200);
   let soft = 0, outside = 0;
   for (const o of doc.items) {
     const eff = o.natW / (o.w / MM_PER_IN);        // real resolution at the printed size
-    if (eff < doc.dpi * 0.66) soft++;
+    if (eff < softBelow) soft++;
     if (o.x < doc.margin - 0.01 || o.y < doc.margin - 0.01 ||
         o.x + o.w > S.w - doc.margin + 0.01 || o.y + o.h > S.h - doc.margin + 0.01) outside++;
   }
@@ -799,6 +802,22 @@ async function printSheet() {
   await img.decode();
   window.print();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+/** Rendering an A4 sheet at 600 DPI takes a few seconds and freezes the tab.
+    Show that something is happening instead of looking dead. */
+async function busy(btn, fn) {
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Се подготвува…';
+  // two frames, so the new label is actually painted before the heavy work starts
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  try {
+    await fn();
+  } finally {
+    btn.textContent = label;
+    btn.disabled = false;
+  }
 }
 
 /* ─────────────────────────── wiring ─────────────────────────── */
@@ -979,13 +998,17 @@ $('marks').addEventListener('change', e => { doc.marks = e.target.checked; rende
 $('guides').addEventListener('change', e => { doc.guides = e.target.checked; render(); });
 
 // output
-$('print').addEventListener('click', printSheet);
-$('dlSheet').addEventListener('click', () => download(exportSheet(), 'png', `A4-${doc.dpi}dpi.png`));
-$('dlImg').addEventListener('click', () => {
+$('print').addEventListener('click', e => busy(e.currentTarget, printSheet));
+
+$('dlSheet').addEventListener('click', e => busy(e.currentTarget,
+  () => download(exportSheet(), 'png', `A4-${doc.dpi}dpi.png`)));
+
+$('dlImg').addEventListener('click', e => {
   const it = selected();
   if (!it) return;
   const fmt = $('format').value;
-  download(exportItem(it), fmt, `${it.name}-${round(it.w, 1)}x${round(it.h, 1)}mm-${doc.dpi}dpi.${fmt}`);
+  busy(e.currentTarget, () =>
+    download(exportItem(it), fmt, `${it.name}-${round(it.w, 1)}x${round(it.h, 1)}mm-${doc.dpi}dpi.${fmt}`));
 });
 
 // keyboard
